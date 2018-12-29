@@ -18,6 +18,7 @@ import android.view.View;
  */
 public class ModuleStatusView extends View {
     private static final int EDIT_MODE_MODULE_COUNT = 8 ;
+    private static final int SHAPE_CIRCLE = 0;
 
     float mOutlineWidth, mShapeSize,mSpacing,mRadius ;
     int mOutlineColor ;
@@ -25,6 +26,7 @@ public class ModuleStatusView extends View {
     Paint mPaintFill;
     int fillColor;
     int maxHorizontaleModules;
+    private int mShape;
 
     public boolean[] getmModuleStatus() {
         return mModuleStatus;
@@ -60,7 +62,9 @@ public class ModuleStatusView extends View {
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.ModuleStatusView, defStyle, 0);
-
+    //config color attr
+        mOutlineColor = a.getColor(R.styleable.ModuleStatusView_outlineColor,Color.BLACK);
+        int shape = a.getInt(R.styleable.ModuleStatusView_shape,SHAPE_CIRCLE);
         a.recycle();
 
                 /*
@@ -76,7 +80,7 @@ public class ModuleStatusView extends View {
                 /*
            TODO (3)
            */
-        mOutlineColor = Color.BLACK;
+
         mPaintOutline = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintOutline.setStyle(Paint.Style.STROKE);
         mPaintOutline.setStrokeWidth(mOutlineWidth);
@@ -143,15 +147,24 @@ public class ModuleStatusView extends View {
 
         // TODO (5):
         for (int i = 0; i < mModuleRectangles.length ; i++) {
-            float x = mModuleRectangles[i].centerX();
-            float y =  mModuleRectangles[i].centerY();
+            if (mShape == SHAPE_CIRCLE){
+                float x = mModuleRectangles[i].centerX();
+                float y =  mModuleRectangles[i].centerY();
 
-            if (mModuleStatus[i])
-                canvas.drawCircle(x,y,mRadius,mPaintFill);
+                if (mModuleStatus[i])
+                    canvas.drawCircle(x,y,mRadius,mPaintFill);
 
-            canvas.drawCircle(x,y,mRadius,mPaintOutline);
+                canvas.drawCircle(x,y,mRadius,mPaintOutline);
 
+
+            } else{
+                drawSquare(canvas,i);
+            }
         }
+    }
+
+    private void drawSquare(Canvas canvas, int i) {
+      //  canvas.drawRect();
     }
 
 
@@ -187,11 +200,20 @@ public class ModuleStatusView extends View {
                  return true;
              case MotionEvent.ACTION_UP:
                  int moduleIndex =findItemAtpoint(event.getX(),event.getY());
+                 OnModuleSelected(moduleIndex);
                  return true;
 
 
          }
         return super.onTouchEvent(event);
+    }
+
+    private void OnModuleSelected(int moduleIndex) {
+        if(moduleIndex == GLES30.GL_INVALID_INDEX)
+            return;
+        mModuleStatus[moduleIndex] = ! mModuleStatus[moduleIndex];
+        //redraw view
+        invalidate();
     }
 
     private int findItemAtpoint(float x, float y) {
